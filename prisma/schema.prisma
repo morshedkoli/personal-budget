@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  email            String    @unique
+  password         String
+  name             String
+  role             Role      @default(USER)
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  transactions Transaction[]
+  categories   Category[]
+  assets       Asset[]
+  liabilities  Liability[]
+  receivables  Receivable[]
+  payables     Payable[]
+  settings     UserSettings?
+
+  @@map("users")
+}
+
+model Category {
+  id     String      @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  type   CategoryType
+  color  String      @default("#3b82f6")
+  icon   String      @default("💰")
+  userId String      @db.ObjectId
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations
+  transactions Transaction[]
+
+  @@map("categories")
+}
+
+model Transaction {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  description String?
+  date        DateTime
+  type        TransactionType
+  userId      String          @db.ObjectId
+  categoryId  String          @db.ObjectId
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  // Optional fields for transfers
+  fromAssetId String? @db.ObjectId
+  toAssetId   String? @db.ObjectId
+
+  @@map("transactions")
+}
+
+model Asset {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  type          AssetType
+  balance       Float     @default(0)
+  initialAmount Float     @default(0)
+  description   String?
+  userId        String    @db.ObjectId
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("assets")
+}
+
+model Liability {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  type          LiabilityType
+  balance       Float         @default(0)
+  initialAmount Float         @default(0)
+  interestRate  Float?        @default(0)
+  dueDate       DateTime?
+  description   String?
+  userId        String        @db.ObjectId
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("liabilities")
+}
+
+model Receivable {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  description String
+  dueDate     DateTime
+  isPaid      Boolean  @default(false)
+  paidDate    DateTime?
+  debtor      String   // Person/entity who owes money
+  userId      String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("receivables")
+}
+
+model Payable {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  description String
+  dueDate     DateTime
+  isPaid      Boolean  @default(false)
+  paidDate    DateTime?
+  creditor    String   // Person/entity to whom money is owed
+  userId      String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payables")
+}
+
+model UserSettings {
+  id                   String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String  @unique @db.ObjectId
+  
+  // Notification settings
+  emailNotifications   Boolean @default(true)
+  transactionAlerts    Boolean @default(true)
+  monthlyReports       Boolean @default(false)
+  budgetAlerts         Boolean @default(true)
+  
+  // App settings
+  currency             String  @default("USD")
+  dateFormat           String  @default("MM/DD/YYYY")
+  theme                String  @default("system")
+  language             String  @default("en")
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  // Relations
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_settings")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+enum AssetType {
+  CASH
+  BANK_ACCOUNT
+  INVESTMENT
+  REAL_ESTATE
+  VEHICLE
+  OTHER
+}
+
+enum LiabilityType {
+  CREDIT_CARD
+  LOAN
+  MORTGAGE
+  OTHER
+}
