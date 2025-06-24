@@ -256,13 +256,13 @@ export const sendPasswordResetEmail = async (email: string, resetUrl: string, us
     
     // For development with Ethereal, log the preview URL
     if (process.env.NODE_ENV === 'development') {
-      console.log('Preview URL:', nodemailer.getTestMessageUrl(info))
+      console.log('Preview URL:', nodemailer.getTestMessageUrl(info as any))
     }
     
     return {
       success: true,
       messageId: info.messageId,
-      previewUrl: process.env.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : undefined
+      previewUrl: process.env.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info as any) : undefined
     }
   } catch (error) {
     console.error('Error sending password reset email:', error)
@@ -556,13 +556,13 @@ export const sendOTPEmail = async (email: string, otp: string, purpose: 'EMAIL_V
     
     // For development with Ethereal, log the preview URL
     if (process.env.NODE_ENV === 'development') {
-      console.log('Preview URL:', nodemailer.getTestMessageUrl(info))
+      console.log('Preview URL:', nodemailer.getTestMessageUrl(info as any))
     }
     
     return {
       success: true,
       messageId: info.messageId,
-      previewUrl: process.env.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : undefined
+      previewUrl: process.env.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info as any) : undefined
     }
   } catch (error) {
     console.error('Error sending OTP email:', error)
