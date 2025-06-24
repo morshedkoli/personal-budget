@@ -354,7 +354,7 @@ export const sendWelcomeEmail = async (email: string, userName: string) => {
             <h1>Welcome to Budgeting App!</h1>
             <p>Hello ${userName},</p>
             <p>Thank you for joining Budgeting App! We're excited to help you take control of your finances.</p>
-            <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dashboard" class="button">Get Started</a>
+            <a href="${process.env.NEXTAUTH_URL || 'https://personal-budget-ten-ecru.vercel.app'}/dashboard" class="button">Get Started</a>
           </div>
           
           <div class="features">
@@ -380,7 +380,7 @@ export const sendWelcomeEmail = async (email: string, userName: string) => {
         
         Thank you for joining Budgeting App! We're excited to help you take control of your finances.
         
-        Get started: ${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dashboard
+        Get started: ${process.env.NEXTAUTH_URL || 'https://personal-budget-ten-ecru.vercel.app'}/dashboard
         
         What you can do with Budgeting App:
         - Track Expenses: Monitor your spending across different categories
