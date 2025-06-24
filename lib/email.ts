@@ -7,39 +7,64 @@ export const generateOTP = (): string => {
 
 // Email configuration
 const createTransport = async () => {
-  // For development, use Ethereal Email (fake SMTP service)
-  // For production, configure with your email service (Gmail, SendGrid, etc.)
-  
-  if (process.env.NODE_ENV === 'development' && !process.env.EMAIL_SERVICE) {
-    // Development: Use Ethereal Email for testing
-    try {
-      const testAccount = await nodemailer.createTestAccount()
-      return nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      })
-    } catch (error) {
-      console.warn('Failed to create Ethereal test account, falling back to console logging')
-      return null
-    }
-  }
-  
-  // Production: Configure with your email service
-  // Example for Gmail:
-  if (process.env.EMAIL_SERVICE === 'gmail') {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD, // Use App Password for Gmail
-      },
+  try {
+    // Log environment for debugging in production
+    console.log('Email configuration check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      EMAIL_SERVICE: process.env.EMAIL_SERVICE,
+      EMAIL_USER: process.env.EMAIL_USER ? 'SET' : 'NOT SET',
+      EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET',
+      EMAIL_FROM: process.env.EMAIL_FROM,
+      SMTP_HOST: process.env.SMTP_HOST,
+      SMTP_PORT: process.env.SMTP_PORT
     })
-  }
+    
+    // For development, use Ethereal Email (fake SMTP service)
+    // For production, configure with your email service (Gmail, SendGrid, etc.)
+    
+    if (process.env.NODE_ENV === 'development' && !process.env.EMAIL_SERVICE) {
+      // Development: Use Ethereal Email for testing
+      try {
+        const testAccount = await nodemailer.createTestAccount()
+        return nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass,
+          },
+        })
+      } catch (error) {
+        console.warn('Failed to create Ethereal test account, falling back to console logging')
+        return null
+      }
+    }
+    
+    // Production: Configure with your email service
+    // Example for Gmail:
+    if (process.env.EMAIL_SERVICE === 'gmail') {
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        throw new Error('Gmail configuration incomplete: EMAIL_USER and EMAIL_PASSWORD are required')
+      }
+      
+      return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD, // Use App Password for Gmail
+        },
+        // Enhanced configuration for Vercel deployment
+        pool: true,
+        maxConnections: 1,
+        rateDelta: 20000,
+        rateLimit: 5,
+        // Add timeout settings
+        connectionTimeout: 60000,
+        greetingTimeout: 30000,
+        socketTimeout: 60000,
+      })
+    }
   
   // Example for SendGrid:
   if (process.env.EMAIL_SERVICE === 'sendgrid') {
@@ -53,16 +78,30 @@ const createTransport = async () => {
     })
   }
   
-  // Example for custom SMTP:
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
-  })
+    // Example for custom SMTP (fallback):
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+      throw new Error('SMTP configuration incomplete: SMTP_HOST, SMTP_USER, and SMTP_PASSWORD are required')
+    }
+    
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+      // Enhanced configuration for Vercel deployment
+      pool: true,
+      maxConnections: 1,
+      connectionTimeout: 60000,
+      greetingTimeout: 30000,
+      socketTimeout: 60000,
+    })
+  } catch (error) {
+    console.error('Failed to create email transporter:', error)
+    throw new Error(`Email configuration failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
 }
 
 export const sendPasswordResetEmail = async (email: string, resetUrl: string, userName?: string) => {
