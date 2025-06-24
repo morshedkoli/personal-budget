@@ -11,7 +11,7 @@ import { EyeIcon, EyeSlashIcon, UserIcon, EnvelopeIcon, SparklesIcon, CheckCircl
 
 type RegistrationStep = 'email' | 'otp' | 'details'
 
-export default function RegisterPage() {
+export default function RegisterWithOTPPage() {
   // Form states
   const [step, setStep] = useState<RegistrationStep>('email')
   const [email, setEmail] = useState('')
@@ -102,7 +102,6 @@ export default function RegisterPage() {
   const handleCompleteRegistration = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
@@ -273,7 +272,7 @@ export default function RegisterPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-500"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Enter your email"
                   required
                 />
@@ -306,15 +305,15 @@ export default function RegisterPage() {
               <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
                 Verification Code
               </label>
-              <p className="text-sm text-gray-800 mb-4">
-                We sent a 6-digit code to <strong className="text-gray-900">{email}</strong>
+              <p className="text-sm text-gray-600 mb-4">
+                We sent a 6-digit code to <strong>{email}</strong>
               </p>
               <input
                 id="otp"
                 type="text"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-center text-2xl font-mono tracking-widest text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-center text-2xl font-mono tracking-widest"
                 placeholder="000000"
                 maxLength={6}
                 required
@@ -375,7 +374,7 @@ export default function RegisterPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-500"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Enter your full name"
                   required
                 />
@@ -392,7 +391,7 @@ export default function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-500"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Create a password"
                   required
                   minLength={6}
@@ -421,7 +420,7 @@ export default function RegisterPage() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-500"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Confirm your password"
                   required
                   minLength={6}

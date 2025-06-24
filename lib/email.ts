@@ -1,7 +1,12 @@
 import nodemailer from 'nodemailer'
 
+// Generate 6-digit OTP
+export const generateOTP = (): string => {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 // Email configuration
-const createTransporter = async () => {
+const createTransport = async () => {
   // For development, use Ethereal Email (fake SMTP service)
   // For production, configure with your email service (Gmail, SendGrid, etc.)
   
@@ -62,7 +67,7 @@ const createTransporter = async () => {
 
 export const sendPasswordResetEmail = async (email: string, resetUrl: string, userName?: string) => {
   try {
-    const transporter = await createTransporter()
+    const transporter = await createTransport()
     
     // If no transporter (development fallback), just log to console
     if (!transporter) {
@@ -228,7 +233,7 @@ export const sendPasswordResetEmail = async (email: string, resetUrl: string, us
 
 export const sendWelcomeEmail = async (email: string, userName: string) => {
   try {
-    const transporter = await createTransporter()
+    const transporter = await createTransport()
     
     // If no transporter (development fallback), just log to console
     if (!transporter) {
@@ -367,5 +372,161 @@ export const sendWelcomeEmail = async (email: string, userName: string) => {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
     }
+  }
+}
+
+export const sendOTPEmail = async (email: string, otp: string, purpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET' = 'EMAIL_VERIFICATION') => {
+  try {
+    const transporter = await createTransport()
+    
+    // If no transporter (development fallback), just log to console
+    if (!transporter) {
+      console.log('\n=== OTP EMAIL (Development Mode) ===')
+      console.log('To:', email)
+      console.log('Subject:', purpose === 'EMAIL_VERIFICATION' ? 'Verify Your Email - Budgeting App' : 'Password Reset OTP - Budgeting App')
+      console.log('OTP:', otp)
+      console.log('Purpose:', purpose)
+      console.log('======================================\n')
+      return {
+        success: true,
+        messageId: 'dev-mode-' + Date.now()
+      }
+    }
+    
+    const isVerification = purpose === 'EMAIL_VERIFICATION'
+    const subject = isVerification ? 'Verify Your Email - Budgeting App' : 'Password Reset OTP - Budgeting App'
+    const title = isVerification ? 'Verify Your Email' : 'Reset Your Password'
+    const message = isVerification 
+      ? 'Please use the following 6-digit code to verify your email address:'
+      : 'Please use the following 6-digit code to reset your password:'
+    
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || 'noreply@budgetingapp.com',
+      to: email,
+      subject,
+      html: `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${title}</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .container {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              border-radius: 10px;
+              padding: 40px;
+              text-align: center;
+              color: white;
+            }
+            .logo {
+              width: 60px;
+              height: 60px;
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 50%;
+              margin: 0 auto 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 24px;
+            }
+            .otp-code {
+              background: #fff;
+              color: #667eea;
+              padding: 20px;
+              border-radius: 8px;
+              font-size: 32px;
+              font-weight: bold;
+              letter-spacing: 8px;
+              margin: 20px 0;
+              font-family: 'Courier New', monospace;
+            }
+            .footer {
+              background: #f8f9fa;
+              padding: 20px;
+              border-radius: 8px;
+              margin-top: 20px;
+              color: #666;
+              font-size: 14px;
+            }
+            .warning {
+              background: #fff3cd;
+              border: 1px solid #ffeaa7;
+              color: #856404;
+              padding: 15px;
+              border-radius: 8px;
+              margin: 20px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="logo">${isVerification ? '📧' : '🔐'}</div>
+            <h1>${title}</h1>
+            <p>${message}</p>
+            <div class="otp-code">${otp}</div>
+            <p>This code will expire in 10 minutes for security reasons.</p>
+          </div>
+          
+          <div class="warning">
+            <strong>⚠️ Security Notice:</strong>
+            <ul style="text-align: left; margin: 10px 0;">
+              <li>Never share this code with anyone</li>
+              <li>This code will expire in 10 minutes</li>
+              <li>If you didn't request this, please ignore this email</li>
+            </ul>
+          </div>
+          
+          <div class="footer">
+            <p>This email was sent from Budgeting App. If you have any questions, please contact our support team.</p>
+            <p style="font-size: 12px; color: #999;">© 2024 Budgeting App. All rights reserved.</p>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        ${title} - Budgeting App
+        
+        ${message}
+        
+        Your verification code: ${otp}
+        
+        This code will expire in 10 minutes for security reasons.
+        
+        Security Notice:
+        - Never share this code with anyone
+        - This code will expire in 10 minutes
+        - If you didn't request this, please ignore this email
+        
+        © 2024 Budgeting App. All rights reserved.
+      `
+    }
+    
+    const info = await transporter.sendMail(mailOptions)
+    
+    console.log('OTP email sent successfully:')
+    console.log('Message ID:', info.messageId)
+    
+    // For development with Ethereal, log the preview URL
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Preview URL:', nodemailer.getTestMessageUrl(info))
+    }
+    
+    return {
+      success: true,
+      messageId: info.messageId,
+      previewUrl: process.env.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : undefined
+    }
+  } catch (error) {
+    console.error('Error sending OTP email:', error)
+    throw new Error('Failed to send OTP email')
   }
 }

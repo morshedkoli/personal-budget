@@ -7,12 +7,32 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().min(1),
+  otpVerified: z.boolean().optional(),
 })
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, name } = registerSchema.parse(body)
+    const { email, password, name, otpVerified } = registerSchema.parse(body)
+
+    // Check if email has been verified via OTP
+    const verifiedOTP = await prisma.emailOTP.findFirst({
+      where: {
+        email,
+        purpose: 'EMAIL_VERIFICATION',
+        verified: true,
+        expiresAt: {
+          gt: new Date(Date.now() - 30 * 60 * 1000), // Valid for 30 minutes after verification
+        },
+      },
+    })
+
+    if (!verifiedOTP) {
+      return NextResponse.json(
+        { error: 'Email verification required. Please verify your email with OTP first.' },
+        { status: 400 }
+      )
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -29,18 +49,28 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password)
 
-    // Create user
+    // Create user with verified email
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
+        emailVerified: true,
       },
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
+        emailVerified: true,
+      },
+    })
+
+    // Clean up OTP records for this email
+    await prisma.emailOTP.deleteMany({
+      where: {
+        email,
+        purpose: 'EMAIL_VERIFICATION',
       },
     })
 
