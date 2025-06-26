@@ -34,6 +34,9 @@ const createTransport = async () => {
       SMTP_PORT: process.env.SMTP_PORT
     })
     
+    // For development, use Ethereal Email (fake SMTP service)
+    // For production, configure with your email service (Gmail, SendGrid, etc.)
+    
     if (process.env.NODE_ENV === 'development' && !process.env.EMAIL_SERVICE) {
       // Development: Use Ethereal Email for testing
       try {
@@ -51,6 +54,11 @@ const createTransport = async () => {
         console.warn('Failed to create Ethereal test account, falling back to console logging')
         return null
       }
+    }
+    
+    // Validate env vars for production
+    if (process.env.NODE_ENV === 'production') {
+      validateEmailEnv();
     }
     
     // Production: Configure with your email service

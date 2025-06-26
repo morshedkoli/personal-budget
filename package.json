@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev",
-  "build": "prisma generate && next build",
-  "start": "next start",
-  "lint": "next lint",
-  "db:push": "prisma db push",
-  "db:generate": "prisma generate",
-  "db:studio": "prisma studio"
-},
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "vercel-build": "prisma generate && next build"
+  },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^5.7.1",
@@ -54,6 +56,7 @@
     "prisma": "^5.7.1"
   },
   "engines": {
-    "node": ">=18.17.0"
+    "node": ">=18.17.0",
+    "npm": ">=8.0.0"
   }
 }
