@@ -6,6 +6,21 @@ export const generateOTP = (): string => {
 }
 
 // Email configuration
+const validateEmailEnv = () => {
+  const requiredVars = [];
+  if (process.env.EMAIL_SERVICE === 'gmail') {
+    requiredVars.push('EMAIL_USER', 'EMAIL_PASSWORD');
+  } else if (process.env.EMAIL_SERVICE === 'sendgrid') {
+    requiredVars.push('SENDGRID_API_KEY');
+  } else {
+    requiredVars.push('SMTP_HOST', 'SMTP_USER', 'SMTP_PASSWORD');
+  }
+  const missing = requiredVars.filter((v) => !process.env[v]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required email environment variables: ${missing.join(', ')}`);
+  }
+};
+
 const createTransport = async () => {
   try {
     // Log environment for debugging in production
@@ -18,9 +33,6 @@ const createTransport = async () => {
       SMTP_HOST: process.env.SMTP_HOST,
       SMTP_PORT: process.env.SMTP_PORT
     })
-    
-    // For development, use Ethereal Email (fake SMTP service)
-    // For production, configure with your email service (Gmail, SendGrid, etc.)
     
     if (process.env.NODE_ENV === 'development' && !process.env.EMAIL_SERVICE) {
       // Development: Use Ethereal Email for testing
