@@ -17,6 +17,9 @@ export async function POST(request: NextRequest) {
       where: { email: email.toLowerCase() }
     })
     
+    // Declare otp variable in outer scope for development mode access
+    let otp: string | undefined
+    
     // Always return success to prevent email enumeration
     // But only send email if user exists
     if (user) {
@@ -29,7 +32,7 @@ export async function POST(request: NextRequest) {
       })
 
       // Generate 6-digit OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString()
+      otp = Math.floor(100000 + Math.random() * 900000).toString()
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
       // Save OTP to database
