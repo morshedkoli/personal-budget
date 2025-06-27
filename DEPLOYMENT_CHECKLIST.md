@@ -1,6 +1,6 @@
 # Vercel Deployment Checklist for Email Functionality
 
-## 🚨 Critical Steps to Fix OTP Email Issues
+## 🚨 Critical Steps to Fix Password Reset Email Issues
 
 ### 1. Set Environment Variables in Vercel Dashboard
 
@@ -55,7 +55,7 @@ After adding environment variables:
 
 1. Go to: https://personal-budget-ten-ecru.vercel.app/auth/register
 2. Try registering with a test email
-3. Check if OTP email is received
+3. Check if password reset email is received
 
 ### 4. Monitor Vercel Function Logs
 
@@ -108,7 +108,7 @@ If Gmail continues to have issues, consider these production-ready alternatives:
 ✅ **Environment variables set in Vercel**
 ✅ **Application redeployed**
 ✅ **Test email endpoint working**
-✅ **Registration OTP emails received**
+✅ **Password reset emails received**
 ✅ **No errors in Vercel function logs**
 
 ### 8. Debug Information
@@ -128,7 +128,7 @@ This will show which environment variables are configured.
 If emails still don't work, you can temporarily:
 1. Use console logging for development
 2. Implement a manual verification process
-3. Switch to SMS OTP (using services like Twilio)
+3. Switch to alternative notification methods (using services like Twilio)
 
 ---
 

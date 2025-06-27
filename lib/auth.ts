@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken' // Add this import
 import bcrypt from 'bcryptjs'
 import { NextRequest } from 'next/server'
 

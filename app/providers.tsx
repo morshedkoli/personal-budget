@@ -1,7 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import Loading from '../components/Loading'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 type Theme = 'dark' | 'light' | 'system'
 
@@ -35,20 +34,14 @@ export function ThemeProvider({
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
-      try {
-        const storedTheme = localStorage.getItem(storageKey) as Theme
-        if (storedTheme && ['dark', 'light', 'system'].includes(storedTheme)) {
-          setTheme(storedTheme)
-        }
-      } catch (error) {
-        console.warn('Failed to load theme from localStorage:', error)
+      const storedTheme = localStorage.getItem(storageKey) as Theme
+      if (storedTheme) {
+        setTheme(storedTheme)
       }
     }
   }, [storageKey])
 
   useEffect(() => {
-    if (!mounted || typeof window === 'undefined') return
-    
     const root = window.document.documentElement
 
     root.classList.remove('light', 'dark')
@@ -64,29 +57,16 @@ export function ThemeProvider({
     }
 
     root.classList.add(theme)
-  }, [theme, mounted])
+  }, [theme])
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
       if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(storageKey, theme)
-        } catch (error) {
-          console.warn('Failed to save theme to localStorage:', error)
-        }
+        localStorage.setItem(storageKey, theme)
       }
       setTheme(theme)
     },
-  }
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <ThemeProviderContext.Provider {...props} value={value}>
-        {children}
-      </ThemeProviderContext.Provider>
-    )
   }
 
   return (
@@ -126,21 +106,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
     // Check if user is logged in on mount
     checkAuth()
   }, [])
 
   const checkAuth = async () => {
     try {
-      if (typeof window === 'undefined') {
-        setLoading(false)
-        return
-      }
-      
       const token = localStorage.getItem('token')
       if (token) {
         const response = await fetch('/api/auth/me', {
@@ -152,15 +125,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = await response.json()
           setUser(userData)
         } else {
-          try {
-            localStorage.removeItem('token')
-          } catch (error) {
-            console.warn('Failed to remove token from localStorage:', error)
-          }
+          localStorage.removeItem('token')
         }
       }
     } catch (error) {
-      console.error('Auth check failed:', error)
       setUser(null)
     } finally {
       setLoading(false)
@@ -179,19 +147,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const { token, user } = await response.json()
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('token', token)
-          } catch (error) {
-            console.warn('Failed to save token to localStorage:', error)
-          }
-        }
+        localStorage.setItem('token', token)
         setUser(user)
         return true
       }
       return false
     } catch (error) {
-      console.error('Login failed:', error)
       throw error
     }
   }
@@ -203,59 +164,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, name, otpVerified: true }),
+        body: JSON.stringify({ email, password, name }),
       })
 
       if (response.ok) {
         const { token, user } = await response.json()
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('token', token)
-          } catch (error) {
-            console.warn('Failed to save token to localStorage:', error)
-          }
-        }
+        localStorage.setItem('token', token)
         setUser(user)
         return true
       }
       return false
     } catch (error) {
-      console.error('Registration failed:', error)
       throw error
     }
   }
 
   const logout = () => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.removeItem('token')
-      } catch (error) {
-        console.warn('Failed to remove token from localStorage:', error)
-      }
-    }
+    localStorage.removeItem('token')
     setUser(null)
-  }
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <AuthContext.Provider value={{ user: null, login, register, logout, loading: true }}>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loading size="lg" text="Initializing..." />
-        </div>
-      </AuthContext.Provider>
-    )
-  }
-
-  // Show loading screen while checking authentication
-  if (loading) {
-    return (
-      <AuthContext.Provider value={{ user, login, register, logout, loading }}>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loading size="lg" text="Checking authentication..." />
-        </div>
-      </AuthContext.Provider>
-    )
   }
 
   return (

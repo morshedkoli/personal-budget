@@ -30,24 +30,13 @@ model User {
   receivables  Receivable[]
   payables     Payable[]
   settings     UserSettings?
-  otps         EmailOTP[]
 
   @@map("users")
+  @@index([email])        // Already unique, but explicit index
+  @@index([resetToken])   // For password reset lookups
 }
 
-model EmailOTP {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String
-  otp       String
-  purpose   OTPPurpose
-  expiresAt DateTime
-  verified  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  userId    String?  @db.ObjectId
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("email_otps")
-}
+// EmailOTP model removed - using token-based authentication instead
 
 model Category {
   id     String      @id @default(auto()) @map("_id") @db.ObjectId
@@ -84,6 +73,9 @@ model Transaction {
   toAssetId   String? @db.ObjectId
 
   @@map("transactions")
+  @@index([userId, date]) // For user transactions by date
+  @@index([userId, type]) // For filtering by type
+  @@index([categoryId])   // For category-based queries
 }
 
 model Asset {
@@ -215,7 +207,4 @@ enum LiabilityType {
   OTHER
 }
 
-enum OTPPurpose {
-  EMAIL_VERIFICATION
-  PASSWORD_RESET
-}
+// OTPPurpose enum removed - using token-based authentication instead

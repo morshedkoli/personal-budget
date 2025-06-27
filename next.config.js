@@ -2,28 +2,38 @@
 const nextConfig = {
   images: {
     domains: ['personal-budget-ten-ecru.vercel.app'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'personal-budget-ten-ecru.vercel.app',
+      },
+    ],
   },
-  // Optimize for Vercel deployment
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
-  },
-  // Ensure proper build output
-  output: 'standalone',
-  // Handle environment variables properly
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
-  // Optimize bundle size
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      }
-    }
-    return config
+  // Optimize for production
+  swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
   },
 }
 

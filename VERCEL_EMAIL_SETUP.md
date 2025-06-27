@@ -1,6 +1,6 @@
 # Vercel Email Configuration Guide
 
-## Issue: OTP Emails Not Sending in Vercel Deployment
+## Issue: Password Reset Emails Not Sending in Vercel Deployment
 
 This guide addresses common issues with email functionality when deploying to Vercel.
 
@@ -108,7 +108,7 @@ Add this test endpoint to verify email configuration:
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
-import { sendOTPEmail } from '@/lib/email'
+import { sendPasswordResetEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -118,8 +118,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
     
-    // Test OTP email
-    const result = await sendOTPEmail(email, '123456', 'EMAIL_VERIFICATION')
+    // Test password reset email
+    const resetToken = 'test-token-123'
+    const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`
+    const result = await sendPasswordResetEmail(email, resetUrl)
     
     return NextResponse.json({ 
       success: true, 

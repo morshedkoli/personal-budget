@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { sendOTPEmail } from '@/lib/email'
 import { z } from 'zod'
+import crypto from 'crypto'
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Please enter a valid email address'),
 })
 
 export async function POST(request: NextRequest) {
@@ -12,67 +12,59 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email } = forgotPasswordSchema.parse(body)
 
-    // Find user by email
+    // Check if user exists
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
+      where: { email },
     })
-    
-    // Declare otp variable in outer scope for development mode access
-    let otp: string | undefined
-    
-    // Always return success to prevent email enumeration
-    // But only send email if user exists
-    if (user) {
-      // Delete any existing OTPs for this email and purpose
-      await prisma.emailOTP.deleteMany({
-        where: {
-          email: email.toLowerCase(),
-          purpose: 'PASSWORD_RESET'
-        }
+
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return NextResponse.json({
+        message: 'If an account with that email exists, we have sent a password reset link.'
       })
-
-      // Generate 6-digit OTP
-      otp = Math.floor(100000 + Math.random() * 900000).toString()
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
-
-      // Save OTP to database
-      await prisma.emailOTP.create({
-        data: {
-          email: email.toLowerCase(),
-          otp,
-          purpose: 'PASSWORD_RESET',
-          expiresAt,
-          userId: user.id
-        }
-      })
-
-      // Send OTP email
-      try {
-        await sendOTPEmail(email, otp, 'PASSWORD_RESET')
-      } catch (emailError) {
-        console.error('Failed to send OTP email:', emailError)
-        // Continue execution for security reasons
-      }
     }
 
-    return NextResponse.json(
-      { 
-        message: 'If an account with that email exists, a verification code has been sent.',
-        ...(process.env.NODE_ENV === 'development' && user ? { otp } : {})
+    // Generate secure reset token
+    const resetToken = crypto.randomBytes(32).toString('hex')
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
+
+    // Update user with reset token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken,
+        resetTokenExpiry,
       },
-      { status: 200 }
-    )
+    })
+
+    // In a real application, you would send an email here
+    // For development, we'll just log the reset link
+    const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`
+    
+    console.log('Password Reset Link:', resetUrl)
+    console.log('Email:', email)
+    
+    // TODO: Send email with reset link
+    // await sendPasswordResetEmail(email, resetUrl)
+
+    return NextResponse.json({
+      message: 'If an account with that email exists, we have sent a password reset link.',
+      // In development, include the reset link for testing
+      ...(process.env.NODE_ENV === 'development' && { resetUrl })
+    })
+
   } catch (error) {
+    console.error('Forgot password error:', error)
+    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: 'Invalid email format', details: error.errors },
         { status: 400 }
       )
     }
-    
-    console.error('Forgot password error:', error)
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'An error occurred. Please try again.' },
       { status: 500 }
     )
   }

@@ -4,14 +4,35 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "vercel-build": "prisma generate && next build"
+    "db:optimize": "node scripts/optimize-database.js",
+    "db:reset": "npx prisma db push --force-reset && node scripts/optimize-database.js",
+    "db:test": "node scripts/test-database.js",
+    "db:health": "curl http://localhost:3000/api/health/database || echo 'Start dev server first: npm run dev'",
+    "db:seed": "node scripts/seed-database.js",
+    "db:backup": "node scripts/backup-database.js",
+    "fix:login": "npm run db:test && echo 'If test passes, try login at: http://localhost:3000/auth/login'",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "analyze": "cross-env ANALYZE=true next build",
+    "build:analyze": "npm run build && npm run analyze",
+    "test:build": "npm run build && npm run start",
+    "security:audit": "npm audit",
+    "security:fix": "npm audit fix",
+    "security:check": "npm audit && npm run lint",
+    "deps:update": "npx npm-check-updates -u",
+    "clean": "rm -rf .next out node_modules/.cache",
+    "pre-commit": "npm run type-check && npm run lint && npm run test"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -37,7 +58,7 @@
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.303.0",
-    "next": "^14.2.30",
+    "next": "^15.3.4",
     "next-intl": "^4.1.0",
     "nodemailer": "^7.0.3",
     "postcss": "^8",
@@ -51,12 +72,15 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "eslint": "^8",
-    "eslint-config-next": "^14.2.30",
+    "eslint-config-next": "14.0.4",
+    "jest": "^30.0.3",
+    "jest-environment-jsdom": "^30.0.2",
     "prisma": "^5.7.1"
   },
   "engines": {
-    "node": ">=18.17.0",
-    "npm": ">=8.0.0"
+    "node": ">=18.17.0"
   }
 }

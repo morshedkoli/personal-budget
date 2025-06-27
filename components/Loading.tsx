@@ -1,25 +1,18 @@
 'use client'
 
 import React from 'react'
-import { Loader2 } from 'lucide-react'
 
 interface LoadingProps {
   size?: 'sm' | 'md' | 'lg'
   text?: string
-  fullScreen?: boolean
   className?: string
 }
 
-const Loading: React.FC<LoadingProps> = ({ 
-  size = 'md', 
-  text = 'Loading...', 
-  fullScreen = false,
-  className = ''
-}) => {
+export default function Loading({ size = 'md', text = 'Loading...', className = '' }: LoadingProps) {
   const sizeClasses = {
     sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8'
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12'
   }
 
   const textSizeClasses = {
@@ -28,9 +21,25 @@ const Loading: React.FC<LoadingProps> = ({
     lg: 'text-lg'
   }
 
-  const content = (
-    <div className={`flex flex-col items-center justify-center space-y-2 ${className}`}>
-      <Loader2 className={`${sizeClasses[size]} animate-spin text-blue-600 dark:text-blue-400`} />
+  return (
+    <div className={`flex flex-col items-center justify-center space-y-3 ${className}`}>
+      <div className={`${sizeClasses[size]} animate-spin`}>
+        <svg className="w-full h-full text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
+          <circle 
+            className="opacity-25" 
+            cx="12" 
+            cy="12" 
+            r="10" 
+            stroke="currentColor" 
+            strokeWidth="4"
+          />
+          <path 
+            className="opacity-75" 
+            fill="currentColor" 
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
+        </svg>
+      </div>
       {text && (
         <p className={`${textSizeClasses[size]} text-gray-600 dark:text-gray-400 font-medium`}>
           {text}
@@ -38,109 +47,53 @@ const Loading: React.FC<LoadingProps> = ({
       )}
     </div>
   )
-
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50">
-        {content}
-      </div>
-    )
-  }
-
-  return content
 }
 
-// Skeleton loading components for better UX
-export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg ${className}`}>
-    <div className="p-4 space-y-3">
-      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
-      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
-      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6"></div>
+// Skeleton loader for cards
+export function SkeletonCard({ className = '' }: { className?: string }) {
+  return (
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 animate-pulse ${className}`}>
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
     </div>
-  </div>
-)
+  )
+}
 
-export const SkeletonTable: React.FC<{ rows?: number; cols?: number }> = ({ 
-  rows = 5, 
-  cols = 4 
-}) => (
-  <div className="animate-pulse">
-    <div className="bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="bg-gray-300 dark:bg-gray-600 p-4">
-        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
-          {Array.from({ length: cols }).map((_, i) => (
-            <div key={i} className="h-4 bg-gray-400 dark:bg-gray-500 rounded"></div>
-          ))}
+// Skeleton loader for tables
+export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <div className="animate-pulse">
+        {/* Header */}
+        <div className="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-b border-gray-200 dark:border-gray-600">
+          <div className="flex space-x-4">
+            {Array.from({ length: cols }).map((_, i) => (
+              <div key={i} className="h-4 bg-gray-200 dark:bg-gray-600 rounded flex-1"></div>
+            ))}
+          </div>
         </div>
-      </div>
-      
-      {/* Rows */}
-      <div className="divide-y divide-gray-300 dark:divide-gray-600">
+        {/* Rows */}
         {Array.from({ length: rows }).map((_, rowIndex) => (
-          <div key={rowIndex} className="p-4">
-            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+          <div key={rowIndex} className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+            <div className="flex space-x-4">
               {Array.from({ length: cols }).map((_, colIndex) => (
-                <div key={colIndex} className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                <div key={colIndex} className="h-4 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
               ))}
             </div>
           </div>
         ))}
       </div>
     </div>
-  </div>
-)
-
-export const SkeletonChart: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg p-6 ${className}`}>
-    <div className="space-y-4">
-      <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-1/3"></div>
-      <div className="h-64 bg-gray-300 dark:bg-gray-600 rounded"></div>
-      <div className="flex justify-center space-x-4">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
-      </div>
-    </div>
-  </div>
-)
-
-// Button loading state
-export const LoadingButton: React.FC<{
-  loading: boolean
-  children: React.ReactNode
-  className?: string
-  disabled?: boolean
-  onClick?: () => void
-  type?: 'button' | 'submit' | 'reset'
-}> = ({ loading, children, className = '', disabled, onClick, type = 'button' }) => (
-  <button
-    type={type}
-    onClick={onClick}
-    disabled={loading || disabled}
-    className={`inline-flex items-center justify-center space-x-2 ${className} ${loading || disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-  >
-    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-    <span>{children}</span>
-  </button>
-)
-
-// Page loading wrapper
-export const PageLoading: React.FC<{ 
-  loading: boolean
-  children: React.ReactNode
-  fallback?: React.ReactNode
-}> = ({ loading, children, fallback }) => {
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        {fallback || <Loading size="lg" text="Loading page..." />}
-      </div>
-    )
-  }
-  
-  return <>{children}</>
+  )
 }
 
-export default Loading
+// Full page loading
+export function PageLoading({ text = 'Loading page...' }: { text?: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <Loading size="lg" text={text} />
+    </div>
+  )
+}
