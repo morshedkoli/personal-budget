@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     
     // Test a simple query with timeout
     const result = await Promise.race([
-      prisma.$queryRaw`SELECT 1 as test`,
+      prisma.user.findFirst({ take: 1 }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Health check timeout')), 3000)
       )

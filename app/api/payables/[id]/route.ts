@@ -27,7 +27,7 @@ export async function PUT(
     // Check if payable exists and belongs to user
     const existingPayable = await prisma.payable.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user.userId,
       },
     })
@@ -41,7 +41,7 @@ export async function PUT(
 
     const payable = await prisma.payable.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         ...validatedData,

@@ -44,7 +44,7 @@ export async function PUT(
 
     const liability = await prisma.liability.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         ...validatedData,

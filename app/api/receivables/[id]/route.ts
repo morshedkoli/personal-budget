@@ -27,7 +27,7 @@ export async function PUT(
     // Check if receivable exists and belongs to user
     const existingReceivable = await prisma.receivable.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.userId,
       },
     })
@@ -41,7 +41,7 @@ export async function PUT(
 
     const receivable = await prisma.receivable.update({
       where: {
-        id: params.id,
+        id,
       },
       data: {
         ...validatedData,

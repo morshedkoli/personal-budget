@@ -97,7 +97,7 @@ export async function PUT(
     }
 
     const transaction = await prisma.transaction.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         category: true,
