@@ -32,7 +32,6 @@ model User {
   settings     UserSettings?
 
   @@map("users")
-  @@index([email])        // Already unique, but explicit index
   @@index([resetToken])   // For password reset lookups
 }
 

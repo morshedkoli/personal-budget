@@ -4,7 +4,7 @@ import { prisma } from '../../../../../lib/prisma'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromRequest(request)
@@ -12,10 +12,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     // Check if receivable exists and belongs to user
     const existingReceivable = await prisma.receivable.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user.userId,
       },
     })
@@ -29,7 +30,7 @@ export async function PATCH(
 
     const receivable = await prisma.receivable.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         isPaid: true,

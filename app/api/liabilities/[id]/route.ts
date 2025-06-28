@@ -15,7 +15,7 @@ const updateLiabilitySchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromRequest(request)
@@ -23,13 +23,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validatedData = updateLiabilitySchema.parse(body)
 
     // Check if liability exists and belongs to user
     const existingLiability = await prisma.liability.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user.userId,
       },
     })
@@ -69,7 +70,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromRequest(request)
@@ -77,10 +78,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     // Check if liability exists and belongs to user
     const existingLiability = await prisma.liability.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: user.userId,
       },
     })
@@ -94,7 +96,7 @@ export async function DELETE(
 
     await prisma.liability.delete({
       where: {
-        id: params.id,
+        id: id,
       },
     })
 

@@ -10,7 +10,6 @@ const nextConfig = {
     ],
   },
   // Optimize for production
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   // Security headers
